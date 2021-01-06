@@ -1,87 +1,50 @@
-import React, { useState, useEffect, useReducer } from 'react';
-import axios from 'axios';
+import React, { useState, useContext } from 'react';
+import { DataContext, DataProvider } from '../../contexts/DataContext';
 
 import SpeakerSearchBar from '../SpeakerSearchBar/SpeakerSearchBar';
 import Speaker from '../Speaker/Speaker';
 
-import requestReducer from '../../reducers/request';
+import { REQUEST_STATUS } from '../../reducers/request';
 
-import {
-  GET_ALL_FAILURE,
-  GET_ALL_SUCCESS,
-  PUT_FAILURE,
-  PUT_SUCCESS,
-} from '../../actions/request';
 
-const REQUEST_STATUS = {
-  LOADING: 'loading',
-  SUCCESS: 'success',
-  ERROR: 'error',
-};
+const SpeakersComponent = ({
+  bgColor,
+}) => {
 
-const Speakers = () => {
+  const specialMessage = '';
+
+  const { records: speakers, status, error, put } = useContext(DataContext);
+
   const onFavoriteToggleHandler = async (speakerRec) => {
-    try {
-      const toggledSpeakerRec = {
-        ...speakerRec,
-        isFavorite: !speakerRec.isFavorite,
-      };
-      await axios.put(
-        `http://localhost:4000/speakers/${speakerRec.id}`,
-        toggledSpeakerRec,
-      );
-      dispatch({
-        type: PUT_SUCCESS,
-        record: toggledSpeakerRec,
-      });
-    } catch (e) {
-      dispatch({
-        type: PUT_FAILURE,
-        error: e,
-      });
-    }
+    put({
+      ...speakerRec,
+      isFavorite: !speakerRec.isFavorite,
+    });
   };
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [{ records: speakers, status, error }, dispatch] = useReducer(
-    requestReducer,
-    {
-      records: [],
-      status: REQUEST_STATUS.LOADING,
-      error: null,
-    },
-  );
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:4000/speakers/');
-
-        dispatch({
-          type: GET_ALL_SUCCESS,
-          records: response.data,
-        });
-      } catch (e) {
-        console.log('Loading data error', e);
-        dispatch({
-          type: GET_ALL_FAILURE,
-          error: e,
-        });
-      }
-    };
-    fetchData();
-  }, []);
 
   const success = status === REQUEST_STATUS.SUCCESS;
   const isLoading = status === REQUEST_STATUS.LOADING;
   const hasErrored = status === REQUEST_STATUS.ERROR;
 
   return (
-    <div>
+    <div className={bgColor}>
       <SpeakerSearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
+
+      {specialMessage && specialMessage.length > 0 && (
+        <div
+          className="bg-orange-100 border-l-8 border-orange-500 text-orange-700 p-4 text-2xl"
+          role="alert"
+        >
+          <p className="font-bold">Special Message</p>
+          <p>{specialMessage}</p>
+        </div>
+      )}
+
       {isLoading && <div>Loading...</div>}
       {hasErrored && (
         <div>
@@ -112,4 +75,13 @@ const Speakers = () => {
     </div>
   );
 };
+
+const Speakers = (props) => {
+  return (
+    <DataProvider baseUrl="http://localhost:4000" routeName="speakers">
+      <SpeakersComponent {...props}></SpeakersComponent>
+    </DataProvider>
+  );
+};
+
 export default Speakers;
