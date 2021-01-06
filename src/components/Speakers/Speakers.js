@@ -1,52 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import axios from 'axios';
 
 import SpeakerSearchBar from '../SpeakerSearchBar/SpeakerSearchBar';
 import Speaker from '../Speaker/Speaker';
 
+import requestReducer from '../../reducers/request';
+
+import {
+  GET_ALL_FAILURE,
+  GET_ALL_SUCCESS,
+  PUT_FAILURE,
+  PUT_SUCCESS,
+} from '../../actions/request';
+
+const REQUEST_STATUS = {
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
+
 const Speakers = () => {
-  
-  function toggleSpeakerFavorite(speakerRec) {
-    return {
-      ...speakerRec,
-      isFavorite: !speakerRec.isFavorite,
-    };
-  }
+  const onFavoriteToggleHandler = async (speakerRec) => {
+    try {
+      const toggledSpeakerRec = {
+        ...speakerRec,
+        isFavorite: !speakerRec.isFavorite,
+      };
+      await axios.put(
+        `http://localhost:4000/speakers/${speakerRec.id}`,
+        toggledSpeakerRec,
+      );
+      dispatch({
+        type: PUT_SUCCESS,
+        record: toggledSpeakerRec,
+      });
+    } catch (e) {
+      dispatch({
+        type: PUT_FAILURE,
+        error: e,
+      });
+    }
+  };
 
-  async function onFavoriteToggleHandler(speakerRec) {
-    const toggleSpeakerRec = toggleSpeakerFavorite(speakerRec);
-    const speakerIndex = speakers.map((speaker) => speaker.id).indexOf(speakerRec.id);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [{ records: speakers, status, error }, dispatch] = useReducer(
+    requestReducer,
+    {
+      records: [],
+      status: REQUEST_STATUS.LOADING,
+      error: null,
+    },
+  );
 
-    await axios.put(`http://localhost:4000/speaker/${speaker.id}`, toggleSpeakerRec);
-    setSpeakers
-      ([...speakers.slice(0,speakerIndex), toggleSpeakerRec, ...speakers.slice(speakerIndex + 1)]);
-  }
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [speakers, setSpeakers] = useState([]);
-
-  const REQUEST_STATUS = {
-    LOADING: "loading",
-    SUCCESS: "success",
-    ERROR:  "error"
-  }
-
-  const [status, setStatus] = useState(REQUEST_STATUS.LOADING);
-  const [error, setError] = useState({});
-
-  useEffect(()=>{
+  useEffect(() => {
     const fetchData = async () => {
       try {
-        const res =  await axios.get("http://localhost:4000/speakers");
-        setSpeakers(res.data);
-        setStatus(REQUEST_STATUS.SUCCESS);
+        const response = await axios.get('http://localhost:4000/speakers/');
+
+        dispatch({
+          type: GET_ALL_SUCCESS,
+          records: response.data,
+        });
       } catch (e) {
-        setStatus(REQUEST_STATUS.ERROR);
-        setError(e);  
+        console.log('Loading data error', e);
+        dispatch({
+          type: GET_ALL_FAILURE,
+          error: e,
+        });
       }
-    }
+    };
     fetchData();
-  },[])
+  }, []);
 
   const success = status === REQUEST_STATUS.SUCCESS;
   const isLoading = status === REQUEST_STATUS.LOADING;
@@ -54,9 +78,10 @@ const Speakers = () => {
 
   return (
     <div>
-      <SpeakerSearchBar searchQuery={searchQuery} 
+      <SpeakerSearchBar
+        searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-         />
+      />
       {isLoading && <div>Loading...</div>}
       {hasErrored && (
         <div>
@@ -69,15 +94,21 @@ const Speakers = () => {
       {success && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-12">
           {speakers
-            .filter(rec => {
-              const targetString = `${rec.firstName} ${rec.lastName}`.toLocaleLowerCase();
-              return searchQuery.length === 0 ? true : targetString.includes(searchQuery.toLocaleLowerCase());
+            .filter((rec) => {
+              const targetString = `${rec.firstName} ${rec.lastName}`.toLowerCase();
+              return searchQuery.length === 0
+                ? true
+                : targetString.includes(searchQuery.toLowerCase());
             })
             .map((speaker) => (
-              <Speaker key={speaker.id} {...speaker} 
-                onFavoriteToggle={() => onFavoriteToggleHandler(speaker)}  />
-          ))}
-        </div>)}
+              <Speaker
+                key={speaker.id}
+                {...speaker}
+                onFavoriteToggle={() => onFavoriteToggleHandler(speaker)}
+              />
+            ))}
+        </div>
+      )}
     </div>
   );
 };
