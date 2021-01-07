@@ -15,24 +15,35 @@ const useRequest = (baseUrl, routeName) => {
     error: null,
   });
 
+  const signal = React.useRef(axios.CancelToken.source());
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/${routeName}`);
+        const response = await axios.get(`${baseUrl}/${routeName}`, {
+          cancelToken: signal.current.token,
+        });
         dispatch({
           type: GET_ALL_SUCCESS,
           records: response.data,
         });
       } catch (e) {
         console.log('Loading data error', e);
-
-        dispatch({
-          type: GET_ALL_FAILURE,
-          error: e,
-        });
+        if (axios.isCancel(e)) {
+          console.log('Get request canceled');
+        } else {
+          dispatch({
+            type: GET_ALL_FAILURE,
+            error: e,
+          });
+        }
       }
     };
     fetchData();
+    return () => {
+      console.log('Unmount and cancel running axios request');
+      signal.current.cancel();
+    }
   }, [baseUrl, routeName]);
 
   const propsLocal = {
@@ -52,7 +63,7 @@ const useRequest = (baseUrl, routeName) => {
           error: e,
         });
       }
-    },[]),
+    }, []),
   };
 
   return propsLocal;
