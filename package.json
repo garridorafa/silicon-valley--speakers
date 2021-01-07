@@ -17,6 +17,7 @@
     "next": "^10.0.3",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-notifications-component": "^3.0.3",
     "react-simple-img": "^2.3.9"
   },
   "devDependencies": {

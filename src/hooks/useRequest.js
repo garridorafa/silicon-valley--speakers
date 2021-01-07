@@ -2,11 +2,13 @@ import React, { useReducer, useEffect } from 'react';
 import requestReducer, { REQUEST_STATUS } from '../reducers/request';
 import axios from 'axios';
 import {
-  GET_ALL_SUCCESS,
   GET_ALL_FAILURE,
+  GET_ALL_SUCCESS,
+  PUT_FAILURE,
   PUT_SUCCESS,
-  PUT_FAILURE
+  PUT
 } from '../actions/request';
+import { store } from 'react-notifications-component';
 
 const useRequest = (baseUrl, routeName) => {
   const [{ records, status, error }, dispatch] = useReducer(requestReducer, {
@@ -20,10 +22,10 @@ const useRequest = (baseUrl, routeName) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/${routeName}`, {
+        const response = await await axios.get(`${baseUrl}/${routeName}`, {
           cancelToken: signal.current.token,
         });
-        dispatch({
+        dispatch({  
           type: GET_ALL_SUCCESS,
           records: response.data,
         });
@@ -36,14 +38,14 @@ const useRequest = (baseUrl, routeName) => {
             type: GET_ALL_FAILURE,
             error: e,
           });
-        }
+      }
       }
     };
     fetchData();
     return () => {
-      console.log('Unmount and cancel running axios request');
+      console.log('unmount and cancel running axios request');
       signal.current.cancel();
-    }
+    };
   }, [baseUrl, routeName]);
 
   const propsLocal = {
@@ -52,6 +54,10 @@ const useRequest = (baseUrl, routeName) => {
     error,
     put: React.useCallback(async (record) => {
       try {
+        dispatch({
+          type: PUT,
+          record,
+        });
         await axios.put(`${baseUrl}/${routeName}/${record.id}`, record);
         dispatch({
           type: PUT_SUCCESS,
@@ -62,10 +68,22 @@ const useRequest = (baseUrl, routeName) => {
           type: PUT_FAILURE,
           error: e,
         });
+        store.addNotification({
+          title: 'Favorite Status Update Failure.  Setting Back...',
+          message: `Speaker: ${record.firstName} ${record.lastName}`,
+          type: 'danger',
+          insert: 'top',
+          container: 'top-right',
+          animationIn: ['animated', 'fadeIn'],
+          animationOut: ['animated', 'fadeOut'],
+          dismiss: {
+            duration: 9000,
+            onScreen: true,
+          },
+        });
       }
-    }, []),
+    },[]),
   };
-
   return propsLocal;
 };
 
