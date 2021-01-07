@@ -7,9 +7,7 @@ import Speaker from '../Speaker/Speaker';
 import { REQUEST_STATUS } from '../../reducers/request';
 
 
-const SpeakersComponent = ({
-  bgColor,
-}) => {
+const SpeakersComponent = () => {
 
   const specialMessage = '';
 
@@ -29,7 +27,7 @@ const SpeakersComponent = ({
   const hasErrored = status === REQUEST_STATUS.ERROR;
 
   return (
-    <div className={bgColor}>
+    <div>
       <SpeakerSearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
