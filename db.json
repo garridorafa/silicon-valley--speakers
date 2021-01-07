@@ -2,12 +2,10 @@
   "speakers": [
     {
       "id": 1530,
+      "bio": "Tammy has held a number of executive and management roles over the past 15 years, including VP engineering Roles at Molekule Inc., Cantaloupe Systems, E-Color, and Untangle Inc.",
       "firstName": "Tamara",
       "lastName": "Baker",
-      "sat": false,
-      "sun": true,
-      "isFavorite": false,
-      "bio": "Tammy has held a number of executive and management roles over the past 15 years, including VP engineering Roles at Molekule Inc., Cantaloupe Systems, E-Color, and Untangle Inc."
+      "isFavorite": false
     },
     {
       "id": 5996,
@@ -38,12 +36,10 @@
     },
     {
       "id": 41808,
+      "bio": "Paul is the PyCharm and WebStorm Developer Advocate at JetBrains. Before that, Paul was a partner at Agendaless Consulting and co-founder of Zope Corporation, taking the first open source application server through $14M of funding.",
       "firstName": "Paul",
       "lastName": "Everitt",
-      "sat": true,
-      "sun": true,
-      "isFavorite": true,
-      "bio": "Paul is the PyCharm and WebStorm Developer Advocate at JetBrains. Before that, Paul was a partner at Agendaless Consulting and co-founder of Zope Corporation, taking the first open source application server through $14M of funding."
+      "isFavorite": false
     },
     {
       "id": 1269,
